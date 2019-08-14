@@ -5,12 +5,6 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
     public $pending = 'P';
     public $approved = 'A';
 
-    /*protected function _init($resourceModel) {
-        Mage::getSingleton('pap/config')->includePapAPI();
-
-        $this->_setResourceModel($resourceModel);
-    }*/
-
     public function getSession() {
       if (($this->papSession != '') && ($this->papSession != null)) {
         return $this->papSession;
@@ -32,7 +26,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
       return $this->papSession;
     }
 
-    public function setOrderStatus($order, $status) {
+    public function setOrderStatus($order, $status, $refunded = array()) {
         Mage::log('Postaffiliatepro: Changing status of order '.$order->getIncrementId()." to '$status'");
         $session = $this->getSession();
 
@@ -42,46 +36,99 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
         }
 
         $request = new Pap_Api_TransactionsGrid($session);
-
         $request->addFilter('orderid', Gpf_Data_Filter::LIKE, $order->getIncrementId().'(%');
-        $request->sendNow();
+        $request->setLimit(0, 900);
+        try {
+            $request->sendNow();
+            $grid = $request->getGrid();
+            $recordset = $grid->getRecordset();
 
-        $grid = $request->getGrid();
-        $recordset = $grid->getRecordset();
-        $total = $recordset->getSize();
+            $ids = array();
+            $refundIDs = array();
+            $approveIDs = array();
+            foreach($recordset as $record) {
+                if (count($refunded)) {
+                    if ($status == 'A') {
+                        if (in_array($record->get('productid'), $refunded)) {
+                            $refundIDs[] = $record->get('id');
+                        }
+                        else {
+                            $approveIDs[] = $record->get('id');
+                        }
+                        continue;
+                    }
+                    elseif ($status == 'D') {
+                        if (in_array($record->get('productid'), $refunded)) {
+                            $refundIDs[] = $record->get('id');
+                        }
+                        continue;
+                    }
+                }
+                $ids[] = $record->get('id');
+            }
+        }
+        catch (Exception $e) {
+            Mage::log('An API error while searching for the order with postfix: '.$e->getMessage());
+            return false;
+        }
 
         $transaction = new Pap_Api_Transaction($session);
-        if ($total == 0) {
-            $loop = count($order->getAllVisibleItems());
+        if (count($refundIDs) == 0 && count($approveIDs) == 0 && count($ids) == 0) {
+            $items = $order->getAllVisibleItems();
+            foreach ($items as $i => $item) {
+                $productid = $item->getProductId();
+                $product = Mage::getModel('catalog/product')->load($productid);
 
-            if ($status == $this->approved) {
-                $transaction->setOrderID($order->getIncrementId());
-                $transaction->approveByOrderId('');
-                for ($i = 0; $i < $loop; $i++) {
-                    $transaction->setOrderID($order->getIncrementId()."($i)");
+                $transaction->setOrderID($order->getIncrementId()."($i)");
+                if ($status == $this->approved) {
+                    if (count($refunded) && in_array($product->getSku(), $refunded)) { // if we are refunding only specific order items
+                        $transaction->declineByOrderId('');
+                        continue;
+                    }
                     $transaction->approveByOrderId('');
                 }
-            }
-            if ($status == $this->declined) {
-                $transaction->setOrderID($order->getIncrementId());
-                $transaction->declineByOrderId('');
-                for ($i = 0; $i < $loop; $i++) {
-                    $transaction->setOrderID($order->getIncrementId()."($i)");
+                if ($status == $this->declined) {
+                    if (count($refunded) && !in_array($product->getSku(), $refunded)) { // if we are refunding only specific order items
+                        continue;
+                    }
                     $transaction->declineByOrderId('');
                 }
             }
             return;
         }
 
-        foreach($recordset as $record) {
-            if ($status == $record->get('rstatus')) continue;
-
-            $transaction->setTransid($record->get('transid'));
-            $transaction->load();
-            $transaction->setDateapproved(($order['dateapproved']) ? $order['dateapproved'] : now());
-            $transaction->setStatus($status);
-            $transaction->save();
+        try {
+            Mage::log('We will be changing status of IDs: '.print_r($ids,true));
+            $request = new Gpf_Rpc_FormRequest('Pap_Merchants_Transaction_TransactionsForm', 'changeStatus', $session);
+            if (!empty($refundIDs)) {
+                $request->addParam('ids',new Gpf_Rpc_Array($refundIDs));
+                $request->addParam('status','D');
+                $request->sendNow();
+            }
+            if (!empty($approveIDs)) {
+                $request->addParam('ids',new Gpf_Rpc_Array($approveIDs));
+                $request->addParam('status','A');
+                $request->sendNow();
+            }
+            $request->addParam('ids',new Gpf_Rpc_Array($ids));
+            $request->addParam('status',$status);
+            $request->sendNow();
+            return true;
         }
+        catch (Exception $e) {
+            Mage::log('API error while status changing: '.$e->getMessage());
+            return false;
+        }
+    }
+
+    private function getStatus($state) {
+        if ($state === Mage_Sales_Model_Order::STATE_PENDING_PAYMENT || $state === Mage_Sales_Model_Order::STATE_NEW || $state === Mage_Sales_Model_Order::STATE_PROCESSING) {
+            return $this->pending;
+        }
+        if ($state === Mage_Sales_Model_Order::STATE_COMPLETE) {
+            return $this->approved;
+        }
+        return $this->declined;
     }
 
     public function getOrderSaleDetails($order) {
@@ -91,9 +138,11 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
         $couponcode = $quote->getCouponCode();
 
         $sales = array();
+        $status = $this->getStatus($order->getState());
 
         if ($config->getPerProduct()) { // per product tracking
             $items = $order->getAllVisibleItems();
+
             foreach($items as $i=>$item) {
                 $productid = $item->getProductId();
                 $product = Mage::getModel('catalog/product')->load($productid);
@@ -106,6 +155,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
                 $sales[$i]['orderid'] = $order->getIncrementId();
                 $sales[$i]['productid'] = $product->getSku();
                 $sales[$i]['couponcode'] = $couponcode;
+                $sales[$i]['status'] = $status;
 
                 for ($n = 1; $n < 6; $n++) {
                     if ($config->getData($n)) {
@@ -117,13 +167,14 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
         else { // per order tracking
             $sales[0] = array();
 
-            $subtotal = $order->getSubtotal();
+            $subtotal = $order->getBaseSubtotal();
             $discount = abs($order->getBaseDiscountAmount());
 
             $sales[0]['totalcost'] = $subtotal - $discount;
             $sales[0]['orderid'] = $order->getIncrementId();
             $sales[0]['productid'] = null;
             $sales[0]['couponcode'] = $couponcode;
+            $sales[0]['status'] = $status;
 
             for ($n = 1; $n < 6; $n++) {
                 if ($config->getData($n)) {
@@ -178,6 +229,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
           $sale->setTotalCost($item['totalcost']);
           $sale->setOrderID($item['orderid']."($i)");
           $sale->setProductID($item['productid']);
+          $sale->setStatus($item['status']);
           if ($item['couponcode']) $sale->setCouponCode($item['couponcode']);
           if ($item['data1']) $sale->setData1($item['data1']);
           if ($item['data2']) $sale->setData2($item['data2']);

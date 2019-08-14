@@ -9,8 +9,8 @@
  *   Version 1.0 (the "License"); you may not use this file except in compliance
  *   with the License. You may obtain a copy of the License at
  *   http://www.qualityunit.com/licenses/gpf
- *   Generated on: 2015-04-23 06:21:54
- *   PAP version: 5.3.26.6, GPF version: 1.3.12.0
+ *   Generated on: 2015-10-29 10:16:38
+ *   PAP version: 5.4.20.6, GPF version: 1.3.28.0
  *   
  */
 
@@ -2210,6 +2210,11 @@ if (!class_exists('Gpf_Rpc_Form', false)) {
           return $record->get(self::FIELD_VALUE);
       }
       
+      public function getFieldValues($name) {
+          $record = $this->fields->getRecord($name);
+          return $record->get(self::FIELD_VALUES);
+      }
+  
       public function getFieldError($name) {
           $record = $this->fields->getRecord($name);
           return $record->get(self::FIELD_ERROR);
@@ -3547,7 +3552,7 @@ if (!class_exists('Gpf_Api_Session', false)) {
   	 * @return boolean true if user was successfully logged
   	 */
       private function authenticateRequest($username, $password, $authtoken, $roleType = self::MERCHANT, $languageCode = null) {
-          $request = new Gpf_Rpc_FormRequest(self::AUTHENTICATE_CLASS_NAME, self::AUTHENTICATE_METHOD_NAME, $this);
+          $request = new Gpf_Rpc_FormRequest($this->getAuthenticateClassName(), self::AUTHENTICATE_METHOD_NAME, $this);
           $request->setUrl($this->url);
           if ($username != '' && $password != '') {
               $request->setField('username', $username);
@@ -3592,7 +3597,7 @@ if (!class_exists('Gpf_Api_Session', false)) {
        * @return string version of installed application
        */
       public function getAppVersion() {
-          $request = new Gpf_Rpc_FormRequest(self::AUTHENTICATE_CLASS_NAME, "getAppVersion");
+          $request = new Gpf_Rpc_FormRequest($this->getAuthenticateClassName(), "getAppVersion");
           $request->setUrl($this->url);
   
           try {
@@ -3645,6 +3650,10 @@ if (!class_exists('Gpf_Api_Session', false)) {
   	        return $url . '?S=' . $this->getSessionId();
   	    }
   	    return $url . '&S=' . $this->getSessionId();
+  	}
+  
+  	protected function getAuthenticateClassName() {
+  	    return self::AUTHENTICATE_CLASS_NAME;
   	}
   
   	/**
@@ -3710,6 +3719,11 @@ if (!class_exists('Gpf_Rpc_Json', false)) {
        * Behavior switch for Services_JSON::decode()
        */
       const SERVICES_JSON_SUPPRESS_ERRORS = 32;
+      
+      /**
+       * @var Gpf_Rpc_Json
+       */
+      private static $instance;
   
       /**
        * constructs a new JSON instance
@@ -3731,6 +3745,8 @@ if (!class_exists('Gpf_Rpc_Json', false)) {
       {
           $this->use = $use;
       }
+      
+      
   
       /**
        * convert a string from one UTF-16 char to one UTF-8 char
@@ -4387,6 +4403,21 @@ if (!class_exists('Gpf_Rpc_Json', false)) {
           }
           return false;
       }
+      
+      public static function encodeStatic($var) {
+          return self::getInstance()->encode($var);
+      }
+      
+      public static function decodeStatic($var) {
+          return self::getInstance()->decode($var);
+      }
+      
+      private static function getInstance() {
+          if (self::$instance === null) {
+              self::$instance = new self;
+          }
+          return self::$instance;
+      }
   }
   
   class Gpf_Rpc_Json_Error {
@@ -4453,6 +4484,10 @@ if (!class_exists('Pap_Api_Object', false)) {
       const FIELD_VALUE = "value";
       const FIELD_ERROR = "error";
       const FIELD_VALUES = "values";
+      const FIELD_OPERATOR = 'operator';
+      
+      const OPERATOR_EQUALS = '=';
+      const OPERATOR_LIKE = 'L';
   
       /**
        * @var Gpf_Data_IndexedRecordSet
@@ -4467,14 +4502,16 @@ if (!class_exists('Pap_Api_Object', false)) {
           $header->add(self::FIELD_NAME);
           $header->add(self::FIELD_VALUE);
           $header->add(self::FIELD_VALUES);
+          $header->add(self::FIELD_OPERATOR);
           $header->add(self::FIELD_ERROR);
   
           $this->fields->setHeader($header);
       }
   
-      public function setField($name, $value) {
+      public function setField($name, $value, $operator = self::OPERATOR_EQUALS) {
           $record = $this->fields->createRecord($name);
           $record->set(self::FIELD_VALUE, $value);
+          $record->set(self::FIELD_OPERATOR, $operator);
   
           $this->fields->add($record);
       }
@@ -4484,7 +4521,7 @@ if (!class_exists('Pap_Api_Object', false)) {
          	    $record = $this->fields->getRecord($name);
          	    return $record->get(self::FIELD_VALUE);
          	} catch(Exception $e) {
-         	    return '';
+         	    return null;
          	}
       }
   
@@ -4525,7 +4562,7 @@ if (!class_exists('Pap_Api_Object', false)) {
       protected function fillFieldsToGridRequest($request) {
           foreach($this->fields as $field) {
               if($field->get(self::FIELD_VALUE) != '') {
-                  $request->addFilter($field->get(self::FIELD_NAME), "L", $field->get(self::FIELD_VALUE));
+                  $request->addFilter($field->get(self::FIELD_NAME), $field->get(self::FIELD_OPERATOR), $field->get(self::FIELD_VALUE));
               }
           }
       }
@@ -4587,7 +4624,7 @@ if (!class_exists('Pap_Api_Object', false)) {
           $request = new Gpf_Rpc_FormRequest($this->class, $method, $this->session);
           $this->beforeCallRequest($request);
           foreach($this->getFields() as $field) {
-              if($field->get(self::FIELD_VALUE) != null) {
+              if($field->get(self::FIELD_VALUE) !== null) {
                   $request->setField($field->get(self::FIELD_NAME), $field->get(self::FIELD_VALUE));
               }
           }
@@ -4654,6 +4691,9 @@ if (!class_exists('Pap_Api_Object', false)) {
   
           return $this->callRequest("add");
       }
+      
+      protected function fillEmptyRecord() {
+      }
   
       protected function beforeCallRequest(Gpf_Rpc_FormRequest $request) {
       }
@@ -4694,11 +4734,7 @@ if (!class_exists('Pap_Api_BannersGrid', false)) {
 if (!class_exists('Pap_Api_Affiliate', false)) {
   class Pap_Api_Affiliate extends Pap_Api_Object {
   
-      const OPERATOR_EQUALS = '=';
-      const OPERATOR_LIKE = 'L';
-  
       private $dataValues = null;
-      private $equalsFields = array();
   
       public function __construct(Gpf_Api_Session $session) {
           if($session->getRoleType() == Gpf_Api_Session::AFFILIATE) {
@@ -4709,18 +4745,7 @@ if (!class_exists('Pap_Api_Affiliate', false)) {
            
           parent::__construct($session);
   
-          $this->addEqualField('username');
-           
           $this->getDataFields();
-      }
-  
-      private function addEqualField($name) {
-          $this->equalsFields[] = $name;
-          $testObj= new StdClass();
-      }
-  
-      private function getEqualFields() {
-          return $this->equalsFields;
       }
   
       public function getUserid() { return $this->getField("userid"); }
@@ -4731,11 +4756,8 @@ if (!class_exists('Pap_Api_Affiliate', false)) {
   
       public function getRefid() { return $this->getField("refid"); }
   
-      public function setRefid($value, $operator = self::OPERATOR_LIKE) { 
-          $this->setField('refid', $value);
-          if ($operator == self::OPERATOR_EQUALS) {
-              $this->addEqualField('refid');
-          }
+      public function setRefid($value, $operator = self::OPERATOR_EQUALS) { 
+          $this->setField('refid', $value, $operator);
       }
   
       public function getStatus() { return $this->getField("rstatus"); }
@@ -4753,13 +4775,12 @@ if (!class_exists('Pap_Api_Affiliate', false)) {
       public function getPhoto() { return $this->getField("photo"); }
       public function setPhoto($value) { $this->setField("photo", $value); }
   
+      public function getAuthToken() { return $this->getField('authtoken'); }
+  
       public function getUsername() { return $this->getField("username"); }
   
-      public function setUsername($value, $operator = self::OPERATOR_LIKE) {
-          $this->setField('username', $value);
-          if ($operator == self::OPERATOR_EQUALS) {
-              $this->addEqualField('username');
-          }
+      public function setUsername($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField('username', $value, $operator);
       }
   
       public function getPassword() { return $this->getField("rpassword"); }
@@ -4767,20 +4788,14 @@ if (!class_exists('Pap_Api_Affiliate', false)) {
   
       public function getFirstname() { return $this->getField("firstname"); }
   
-      public function setFirstname($value, $operator = self::OPERATOR_LIKE) {
-          $this->setField('firstname', $value);
-          if ($operator == self::OPERATOR_EQUALS) {
-              $this->addEqualField('firstname');
-          }
+      public function setFirstname($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField('firstname', $value, $operator);
       }
   
       public function getLastname() { return $this->getField("lastname"); }
   
-      public function setLastname($value, $operator = self::OPERATOR_LIKE) {
-          $this->setField('lastname', $value);
-          if ($operator == self::OPERATOR_EQUALS) {
-              $this->addEqualField('lastname');
-          }
+      public function setLastname($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField('lastname', $value, $operator);
       }
   
       public function getParentUserId() { return $this->getField("parentuserid"); }
@@ -4792,18 +4807,19 @@ if (!class_exists('Pap_Api_Affiliate', false)) {
       public function getNotificationEmail() { return $this->getField("notificationemail"); }
       public function setNotificationEmail($value) { $this->setField("notificationemail", $value); }
   
-      public function enableCreateSignupReferralCommissions() { $this->setField("createSignupReferralComm", Gpf::YES); }
+      public function getLanguage() { return $this->getField('lang'); }
+      public function setLanguage($value) { $this->setField('lang', $value); }
+  
+      public function disableSignupBonus() { $this->setField('createSignupComm', Gpf::NO); }
+      public function disableReferralCommissions() { $this->setField('createReferralComm', Gpf::NO); }
   
       public function getData($index) {
           $this->checkIndex($index);
           return $this->getField("data$index");
       }
-      public function setData($index, $value, $operator = self::OPERATOR_LIKE) {
+      public function setData($index, $value, $operator = self::OPERATOR_EQUALS) {
           $this->checkIndex($index);
-          $this->setField("data$index", $value);
-          if ($operator == self::OPERATOR_EQUALS) {
-              $this->addEqualField('data' . $index);
-          }
+          $this->setField("data$index", $value, $operator);
       }
   
       public function setPayoutOptionField($code, $value) {
@@ -4869,18 +4885,6 @@ if (!class_exists('Pap_Api_Affiliate', false)) {
   
       protected function getGridRequest() {
           return new Pap_Api_AffiliatesGrid($this->getSession());
-      }
-  
-      protected function fillFieldsToGridRequest($request) {
-          foreach(parent::getFields() as $field) {
-              if($field->get(self::FIELD_VALUE) != '') {
-                  $operator = self::OPERATOR_LIKE;
-                  if (in_array($field->get(self::FIELD_NAME), $this->getEqualFields())) {
-                      $operator = self::OPERATOR_EQUALS;
-                  }
-                  $request->addFilter($field->get(self::FIELD_NAME), $operator, $field->get(self::FIELD_VALUE));
-              }
-          }
       }
   
       /**
@@ -4971,6 +4975,8 @@ if (!class_exists('Pap_Api_TransactionsGrid', false)) {
 
 if (!class_exists('Pap_Api_Transaction', false)) {
   class Pap_Api_Transaction extends Pap_Api_Object {
+      
+      const TRACKING_METHOD_MANUAL_COMMISSION = 'M';
   
       private $dataValues = null;
   
@@ -5015,34 +5021,50 @@ if (!class_exists('Pap_Api_Transaction', false)) {
       public function setCountryCode($value) { $this->setField("countrycode", $value); }
   
       public function getDateInserted() { return $this->getField("dateinserted"); }
-      public function setDateInserted($value) { $this->setField("dateinserted", $value); }
+      public function setDateInserted($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("dateinserted", $value, $operator);
+      }
   
       public function getDateApproved() { return $this->getField("dateapproved"); }
-      public function setDateApproved($value) { $this->setField("dateapproved", $value); }
+      public function setDateApproved($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("dateapproved", $value, $operator);
+      }
   
       public function getPayoutStatus() { return $this->getField("payoutstatus"); }
       public function setPayoutStatus($value) { $this->setField("payoutstatus", $value); }
   
       public function getPayoutHistoryId() { return $this->getField("payouthistoryid"); }
-      public function setPayoutHistoryId($value) { $this->setField("payouthistoryid", $value); }
+      public function setPayoutHistoryId($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("payouthistoryid", $value, $operator);
+      }
   
       public function getRefererUrl() { return $this->getField("refererurl"); }
-      public function setRefererUrl($value) { $this->setField("refererurl", $value); }
+      public function setRefererUrl($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("refererurl", $value, $operator);
+      }
   
       public function getIp() { return $this->getField("ip"); }
-      public function setIp($value) { $this->setField("ip", $value); }
+      public function setIp($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("ip", $value, $operator);
+      }
   
       public function getBrowser() { return $this->getField("browser"); }
-      public function setBrowser($value) { $this->setField("browser", $value); }
+      public function setBrowser($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("browser", $value, $operator);
+      }
   
       public function getCommission() { return $this->getField("commission"); }
       public function setCommission($value) { $this->setField("commission", $value); }
   
       public function getOrderId() { return $this->getField("orderid"); }
-      public function setOrderId($value) { $this->setField("orderid", $value); }
+      public function setOrderId($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("orderid", $value, $operator);
+      }
   
       public function getProductId() { return $this->getField("productid"); }
-      public function setProductId($value) { $this->setField("productid", $value); }
+      public function setProductId($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("productid", $value, $operator);
+      }
   
       public function getTotalCost() { return $this->getField("totalcost"); }
       public function setTotalCost($value) { $this->setField("totalcost", $value); }
@@ -5051,37 +5073,57 @@ if (!class_exists('Pap_Api_Transaction', false)) {
       public function setRecurringCommid($value) { $this->setField("recurringcommid", $value); }
   
       public function getFirstClickTime() { return $this->getField("firstclicktime"); }
-      public function setFirstClickTime($value) { $this->setField("firstclicktime", $value); }
+      public function setFirstClickTime($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("firstclicktime", $value, $operator);
+      }
   
       public function getFirstClickReferer() { return $this->getField("firstclickreferer"); }
-      public function setFirstClickReferer($value) { $this->setField("firstclickreferer", $value); }
+      public function setFirstClickReferer($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("firstclickreferer", $value, $operator);
+      }
   
       public function getFirstClickIp() { return $this->getField("firstclickip"); }
-      public function setFirstClickIp($value) { $this->setField("firstclickip", $value); }
+      public function setFirstClickIp($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("firstclickip", $value, $operator);
+      }
   
       public function getFirstClickData1() { return $this->getField("firstclickdata1"); }
-      public function setFirstClickData1($value) { $this->setField("firstclickdata1", $value); }
+      public function setFirstClickData1($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("firstclickdata1", $value, $operator);
+      }
   
       public function getFirstClickData2() { return $this->getField("firstclickdata2"); }
-      public function setFirstClickData2($value) { $this->setField("firstclickdata2", $value); }
+      public function setFirstClickData2($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("firstclickdata2", $value, $operator);
+      }
   
       public function getClickCount() { return $this->getField("clickcount"); }
       public function setClickCount($value) { $this->setField("clickcount", $value); }
   
       public function getLastClickTime() { return $this->getField("lastclicktime"); }
-      public function setLastClickTime($value) { $this->setField("lastclicktime", $value); }
+      public function setLastClickTime($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("lastclicktime", $value, $operator);
+      }
   
       public function getLastClickReferer() { return $this->getField("lastclickreferer"); }
-      public function setLastClickReferer($value) { $this->setField("lastclickreferer", $value); }
+      public function setLastClickReferer($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("lastclickreferer", $value, $operator);
+      }
   
       public function getLastClickIp() { return $this->getField("lastclickip"); }
-      public function setLastClickIp($value) { $this->setField("lastclickip", $value); }
+      public function setLastClickIp($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("lastclickip", $value, $operator);
+      }
   
       public function getLastClickData1() { return $this->getField("lastclickdata1"); }
-      public function setLastClickData1($value) { $this->setField("lastclickdata1", $value); }
+      public function setLastClickData1($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("lastclickdata1", $value, $operator);
+      }
   
       public function getLastClickData2() { return $this->getField("lastclickdata2"); }
-      public function setLastClickData2($value) { $this->setField("lastclickdata2", $value); }
+      public function setLastClickData2($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("lastclickdata2", $value, $operator);
+      }
   
       public function getTrackMethod() { return $this->getField("trackmethod"); }
       public function setTrackMethod($value) { $this->setField("trackmethod", $value); }
@@ -5105,10 +5147,14 @@ if (!class_exists('Pap_Api_Transaction', false)) {
       public function setCommTypeId($value) { $this->setField("commtypeid", $value); }
   
       public function getMerchantNote() { return $this->getField("merchantnote"); }
-      public function setMerchantNote($value) { $this->setField("merchantnote", $value); }
+      public function setMerchantNote($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("merchantnote", $value, $operator);
+      }
   
       public function getSystemNote() { return $this->getField("systemnote"); }
-      public function setSystemNote($value) { $this->setField("systemnote", $value); }
+      public function setSystemNote($value, $operator = self::OPERATOR_EQUALS) {
+          $this->setField("systemnote", $value, $operator);
+      }
   
       public function getParentTransactionId() { return $this->getField("parenttransid"); }
       public function setParentTransactionId($value) { $this->setField("parenttransid", $value); }
@@ -5117,9 +5163,9 @@ if (!class_exists('Pap_Api_Transaction', false)) {
           $this->checkIndex($index);
           return $this->getField("data$index");
       }
-      public function setData($index, $value) {
+      public function setData($index, $value, $operator = self::OPERATOR_EQUALS) {
           $this->checkIndex($index);
-          $this->setField("data$index", $value);
+          $this->setField("data$index", $value, $operator);
       }
   
       /**
@@ -5206,6 +5252,9 @@ if (!class_exists('Pap_Api_Transaction', false)) {
           }
           if($this->getMultiTierCreation() == '') {
               $this->setMultiTierCreation('N');
+          }
+          if($this->getTrackMethod() == '') {
+              $this->setTrackMethod(self::TRACKING_METHOD_MANUAL_COMMISSION);
           }
       }
   
@@ -6188,14 +6237,14 @@ if (!class_exists('Pap_Api_ClickTracker', false)) {
 
 if (!class_exists('Pap_Api_RecurringCommission', false)) {
   class Pap_Api_RecurringCommission extends Pap_Api_Object {
-  	
+  
       public function __construct(Gpf_Api_Session $session) {
           parent::__construct($session);
           $this->class = 'Pap_Features_RecurringCommissions_RecurringCommissionsForm';
       }
       
-      public function setOrderId($value) { 
-      	$this->setField('orderid', $value);    
+      public function setOrderId($value, $operator = self::OPERATOR_EQUALS) { 
+      	$this->setField('orderid', $value, $operator);    
       }
   
       public function setTotalCost($value) { 
@@ -6212,8 +6261,8 @@ if (!class_exists('Pap_Api_RecurringCommission', false)) {
   
       protected function getGridRequest() {
   		return new Pap_Api_RecurringCommissionsGrid($this->getSession());
-      }  
-      
+      }
+  
       public function createCommissions() {
           $request = new Gpf_Rpc_ActionRequest('Pap_Features_RecurringCommissions_RecurringCommissionsForm',
                                                'createCommissions', $this->getSession());
@@ -6228,6 +6277,19 @@ if (!class_exists('Pap_Api_RecurringCommission', false)) {
           if ($action->isError()) {
               throw new Gpf_Exception($action->getErrorMessage());
           }
+      }
+  
+      public function createCommissionsReturnIds() {
+          $request = new Gpf_Rpc_DataRequest('Pap_Features_RecurringCommissions_RecurringCommissionsForm',
+                                              'createCommissionsReturnIds', $this->getSession());
+          $request->addParam('id', $this->getId());
+          $request->addParam('orderid', $this->getField('orderid'));
+          $request->addParam('totalcost', $this->getField('totalcost'));
+          if ($this->getSession()->getSessionId() == '') {
+              $request->addParam('initSession', Gpf::YES);
+          }
+          $request->sendNow();
+          return $request->getData()->getValue(Gpf_Rpc_Action::IDS);
       }
   }
 
@@ -6367,6 +6429,19 @@ if (!class_exists('Pap_Api_PayoutsHistoryGrid', false)) {
 
 } //end Pap_Api_PayoutsHistoryGrid
 
+if (!class_exists('Pap_Api_Session', false)) {
+  class Pap_Api_Session extends Gpf_Api_Session {
+  
+      const AUTHENTICATE_CLASS_NAME = 'Pap_Api_AuthService';
+  
+      
+      protected function getAuthenticateClassName() {
+          return self::AUTHENTICATE_CLASS_NAME;
+      }
+  }
+
+} //end Pap_Api_Session
+
 if (!class_exists('Gpf_Net_Http_Client', false)) {
     class Gpf_Net_Http_Client extends Gpf_Net_Http_ClientBase {
 
@@ -6380,6 +6455,6 @@ if (!class_exists('Gpf_Net_Http_Client', false)) {
 }
 /*
 VERSION
-33062c712167aba963c8a8af731bdcf0
+dd3e251e05f78b1e2ce51e07991dc8f9
 */
 ?>

@@ -12,31 +12,41 @@ class Qualityunit_Pap_Model_Observer {
       if (!$config->isConfigured()) return false;
 
       try {
-          if ($order->getStatus() == 'holded') {
+          Mage::log("Transaction status changed to ".$order->getStatus());
+          if ($order->getStatus() == 'holded' || $order->getStatus() == 'pending') {
               Mage::getModel('pap/pap')->setOrderStatus($order, $this->pending);
+              return $this;
           }
 
           if ($order->getStatus() == 'canceled') {
               Mage::getModel('pap/pap')->setOrderStatus($order, $this->declined);
+              return $this;
           }
 
           // refund
-          if (($order->getBaseTotalPaid() > 0) && ($order->getBaseTotalPaid() <= ($order->getBaseTotalRefunded() + $order->getBaseTotalCanceled()))) {
+          if ($order->getStatus() == 'closed') {
               Mage::getModel('pap/pap')->setOrderStatus($order, $this->declined);
+              return $this;
           }
 
-          // partial refund
-          if (($order->getBaseTotalPaid() > 0) && ($order->getBaseTotalRefunded() > 0 || $order->getBaseTotalCanceled() > 0)) {
-              Mage::getModel('pap/pap')->setOrderStatus($order, $this->pending);
-          }
-
-          if($order->getStatus() == 'complete') {
+          $refunded = array();
+          if ($order->getStatus() == 'complete') {
               if ($order->getBaseTotalPaid() > 0) { // was paid
-                  Mage::getModel('pap/pap')->setOrderStatus($order, $this->approved);
+                  if ($order->getBaseTotalRefunded() > 0) { // partial refund handling
+                      $refunded = $this->getRefundedItemIDs($order);
+                  }
+                  Mage::getModel('pap/pap')->setOrderStatus($order, $this->approved, $refunded);
               }
               else { // completed but not paid
                   Mage::getModel('pap/pap')->setOrderStatus($order, $this->pending);
               }
+              return $this;
+          }
+
+          // if we are here, it's probably a partial refund
+          if ($order->getBaseTotalRefunded() > 0 || $order->getBaseTotalCanceled() > 0) {
+              $refunded = $this->getRefundedItemIDs($order);
+              Mage::getModel('pap/pap')->setOrderStatus($order, $this->declined, $refunded);
           }
       }
       catch (Exception $e) {
@@ -44,6 +54,20 @@ class Qualityunit_Pap_Model_Observer {
       }
 
       return $this;
+    }
+
+    private function getRefundedItemIDs($order) {
+        $refunded = array();
+        $items = $order->getAllVisibleItems();
+
+        foreach($items as $i=>$item) {
+            if ($item->getStatus() == 'Refunded') {
+                $productid = $item->getProductId();
+                $product = Mage::getModel('catalog/product')->load($productid);
+                $refunded[$i] = $product->getSku();
+            }
+        }
+        return $refunded;
     }
 
     public function thankYouPageViewed($observer) {
