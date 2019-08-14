@@ -34,7 +34,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment><![CDATA[Enter the domain name and path where your Post Affiliate Pro or Post Affiliate Network is installed at. E.g. if you access your merchant panel at "www.mysite.com/partners/merchants/" then the value needed for this field is "www.mysite.com/partners"]]></comment>
+                            <tooltip><![CDATA[Enter the domain name and path where your Post Affiliate Pro or Post Affiliate Network is installed at. E.g. if you access your merchant panel at "www.mysite.com/partners/merchants/" then the value needed for this field is "www.mysite.com/partners"]]></tooltip>
                         </url>
                         <username translate="label">
                             <label>API Username</label>
@@ -43,7 +43,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment><![CDATA[Enter your merchant login username (the one you use to log into PAP as an admin)]]></comment>
+                            <tooltip><![CDATA[Enter your merchant login username (the one you use to log into PAP as an admin)]]></tooltip>
                         </username>
                         <password translate="label">
                             <label>API Password</label>
@@ -52,7 +52,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment><![CDATA[Enter your merchant login password (the one you use to log into PAP as an admin)]]></comment>
+                            <tooltip><![CDATA[Enter your merchant login password (the one you use to log into PAP as an admin)]]></tooltip>
                         </password>
                         <accountid translate="label">
                             <label>Account ID</label>
@@ -61,7 +61,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment><![CDATA[Enter your merchant account ID; applies to Post Affiliate Network]]></comment>
+                            <tooltip><![CDATA[Enter your merchant account ID; applies to Post Affiliate Network]]></tooltip>
                         </accountid>
                     </fields>
                 </api>
@@ -90,7 +90,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment><![CDATA[Per product tracking enabled with "Yes". When "No" is selected a commission will be created for whole order.]]></comment>
+                            <tooltip><![CDATA[Per product tracking enabled with "Yes". When "No" is selected a commission will be created for whole order.]]></tooltip>
                         </perproduct>
                         <coupontrack translate="label">
                             <label>Coupon tracking</label>
@@ -100,7 +100,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment><![CDATA[Enabled with "Yes", the system will set a coupon code to the sale tracker.]]></comment>
+                            <tooltip><![CDATA[Enabled with "Yes", the system will set a coupon code to the sale tracker.]]></tooltip>
                         </coupontrack>
                         <data1 translate="label">
                             <label>Custom Data 1</label>
@@ -110,7 +110,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment><![CDATA[Optional extra data value, will be replaced with an appropriate value based on order details]]></comment>
+                            <tooltip><![CDATA[Optional extra data value, will be replaced with an appropriate value based on order details]]></tooltip>
                         </data1>
                         <data2 translate="label">
                             <label>Custom Data 2</label>
@@ -120,7 +120,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment><![CDATA[Optional extra data value...]]></comment>
+                            <tooltip><![CDATA[Optional extra data value...]]></tooltip>
                         </data2>
                         <data3 translate="label">
                             <label>Custom Data 3</label>
@@ -130,7 +130,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment><![CDATA[Optional extra data value...]]></comment>
+                            <tooltip><![CDATA[Optional extra data value...]]></tooltip>
                         </data3>
                         <data4 translate="label">
                             <label>Custom Data 4</label>
@@ -140,7 +140,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment><![CDATA[Optional extra data value...]]></comment>
+                            <tooltip><![CDATA[Optional extra data value...]]></tooltip>
                         </data4>
                         <data5 translate="label">
                             <label>Custom Data 5</label>
@@ -150,7 +150,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment><![CDATA[Optional extra data value...]]></comment>
+                            <tooltip><![CDATA[Optional extra data value...]]></tooltip>
                         </data5>
                     </fields>
                 </tracking>

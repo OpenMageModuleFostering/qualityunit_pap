@@ -17,9 +17,9 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
       $password = $config->getAPICredential('pass');
 
       $session = new Gpf_Api_Session($url);
-      if (!$session->login($username, $password)) {
+      if (@!$session->login($username, $password)) {
           $session = new Gpf_Api_Session(str_replace('http://','https://',$url));
-          if (!$session->login($username, $password)) {
+          if (@!$session->login($username, $password)) {
               Mage::log('Postaffiliatepro: Could not initiate API session: '.$session->getMessage());
               return null;
           }
@@ -124,6 +124,13 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
         }
     }
 
+    private function safeString($str) {
+    	if (strpos($str, '&') !== false) {
+    		return urlencode($str);
+    	}
+    	return $str;
+    }
+
     private function getStatus($state) {
         if ($state === Mage_Sales_Model_Order::STATE_PENDING_PAYMENT || $state === Mage_Sales_Model_Order::STATE_NEW || $state === Mage_Sales_Model_Order::STATE_PROCESSING) {
             return $this->pending;
@@ -156,13 +163,13 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
 
                 $sales[$i]['totalcost'] = $subtotal - $discount;
                 $sales[$i]['orderid'] = $order->getIncrementId();
-                $sales[$i]['productid'] = $product->getSku();
+                $sales[$i]['productid'] = $this->safeString($product->getSku());
                 $sales[$i]['couponcode'] = $couponcode;
                 $sales[$i]['status'] = $status;
 
                 for ($n = 1; $n < 6; $n++) {
                     if ($config->getData($n)) {
-                        $sales[$i]['data'.$n] = $this->changeExtraData($config->getData($n), $order, $item, $product);
+                        $sales[$i]['data'.$n] = $this->safeString($this->changeExtraData($config->getData($n), $order, $item, $product));
                     }
                 }
             }

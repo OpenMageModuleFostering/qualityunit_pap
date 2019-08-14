@@ -15,7 +15,7 @@ class Qualityunit_Pap_Block_Adminhtml_System_Config_Fieldset_Hint
         return $this->toHtml();
     }
 
-    public function getPapVersion() {
+    public function getPapVersion() {return '!!!';
         return (string)Mage::getConfig()->getNode('modules/Qualityunit_Pap/version');
     }
 }
