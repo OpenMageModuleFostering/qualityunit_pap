@@ -18,4 +18,16 @@ class Qualityunit_Pap_Helper_Data extends Mage_Core_Helper_Abstract {
     public function config($field) {
         return Mage::getStoreConfig('pap/general/' . $field);
     }
+
+    /**
+     * Write a log message
+     *
+     * @param mixed $message
+     * @return Mage_Core_Model_Log_Adapter
+     */
+    public function log($message) {
+        //return Mage::getModel('core/log_adapter', 'PostAffiliatePro.log')->log($message);
+        Mage::log($message, null, 'PostAffiliatePro.log');
+        return;
+    }
 }

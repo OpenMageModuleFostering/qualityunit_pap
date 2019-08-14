@@ -29,7 +29,7 @@ class Qualityunit_Pap_Model_Paypal extends Mage_Paypal_Model_Standard {
             }
         }
         catch (Exception $e) {
-            Mage::log('Postaffiliatepro: Exception while trying to log PayPal sale: '.$e->getMessage()."\n");
+            Mage::helper('pap')->log('Postaffiliatepro: Exception while trying to log PayPal sale: '.$e->getMessage());
         }
 
         parent::ipnPostSubmit();

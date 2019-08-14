@@ -12,7 +12,7 @@ class Qualityunit_Pap_Model_Observer {
       if (!$config->isConfigured()) return false;
 
       try {
-          Mage::log("Transaction status changed to ".$order->getStatus());
+          Mage::helper('pap')->log('Postaffiliatepro: Transaction status changed to '.$order->getStatus());
           if ($order->getStatus() == 'holded' || $order->getStatus() == 'pending') {
               Mage::getModel('pap/pap')->setOrderStatus($order, $this->pending);
               return $this;
@@ -25,7 +25,8 @@ class Qualityunit_Pap_Model_Observer {
 
           // refund
           if ($order->getStatus() == 'closed') {
-              Mage::getModel('pap/pap')->setOrderStatus($order, $this->declined);
+              //Mage::getModel('pap/pap')->setOrderStatus($order, $this->declined);
+              Mage::getModel('pap/pap')->refundCommissions($order);
               return $this;
           }
 
@@ -46,7 +47,8 @@ class Qualityunit_Pap_Model_Observer {
           // if we are here, it's probably a partial refund
           if ($order->getBaseTotalRefunded() > 0 || $order->getBaseTotalCanceled() > 0) {
               $refunded = $this->getRefundedItemIDs($order);
-              Mage::getModel('pap/pap')->setOrderStatus($order, $this->declined, $refunded);
+              //Mage::getModel('pap/pap')->setOrderStatus($order, $this->declined, $refunded);
+              Mage::getModel('pap/pap')->refundCommissions($order, $refunded);
           }
       }
       catch (Exception $e) {

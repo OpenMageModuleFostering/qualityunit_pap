@@ -20,7 +20,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
       if (@!$session->login($username, $password)) {
           $session = new Gpf_Api_Session(str_replace('http://','https://',$url));
           if (@!$session->login($username, $password)) {
-              Mage::log('Postaffiliatepro: Could not initiate API session: '.$session->getMessage());
+              Mage::helper('pap')->log('Postaffiliatepro: Could not initiate API session: '.$session->getMessage());
               return null;
           }
       }
@@ -29,18 +29,74 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
       return $this->papSession;
     }
 
-    public function setOrderStatus($order, $status, $refunded = array()) {
+    public function refundCommissions($order, $refunded = array()) {
         $config = Mage::getSingleton('pap/config');
         if (!$config->isAutoStatusChangeEnabled()) {
-            Mage::log('Postaffiliatepro: Automatic status change is not enabled.');
+            Mage::helper('pap')->log('Postaffiliatepro: Automatic status change is not enabled.');
             return false;
         }
 
-        Mage::log('Postaffiliatepro: Changing status of order '.$order->getIncrementId()." to '$status'");
+        Mage::helper('pap')->log('Postaffiliatepro: Starting refund...');
+        $session = $this->getSession();
+        if (empty($session)) {
+            Mage::helper('pap')->log('Postaffiliatepro: The module is still not configured!');
+            return;
+        }
+
+        $request = new Pap_Api_TransactionsGrid($session);
+        $request->addFilter('orderid', Gpf_Data_Filter::LIKE, $order->getIncrementId().'(%');
+        $request->setLimit(0, 900);
+        try {
+            $request->sendNow();
+            $grid = $request->getGrid();
+            $recordset = $grid->getRecordset();
+            $refundIDs = array();
+
+            foreach($recordset as $record) {
+                if (count($refunded)) {
+                    if (!in_array($record->get('productid'), $refunded)) {
+                        continue;
+                    }
+                }
+                $refundIDs[] = $record->get('id');
+            }
+        } catch (Exception $e) {
+            Mage::helper('pap')->log('Postaffiliatepro: An API error while refunding order: '.$e->getMessage());
+            return false;
+        }
+
+        if (empty($refundIDs)) {
+            Mage::helper('pap')->log('Postaffiliatepro: There is nothing to refund!');
+            return;
+        }
+
+        $request = new Gpf_Rpc_FormRequest('Pap_Merchants_Transaction_TransactionsForm', 'makeRefundChargeback', $session);
+        $request->addParam('status', 'R');
+        $request->addParam('merchant_note', 'refunded from Magento API');
+        $request->addParam('refund_multitier', 'N');
+        $request->addParam('ids',new Gpf_Rpc_Array($refundIDs));
+        try {
+            Mage::helper('pap')->log('Postaffiliatepro: Trying to refund IDs: '.print_r($refundIDs, true));
+            $request->sendNow();
+            Mage::helper('pap')->log('Postaffiliatepro: Refund successful');
+        } catch(Exception $e){
+            Mage::helper('pap')->log('Postaffiliatepro: An error occurred while refunding: '.$e->getMessage());
+        }
+        return true;
+    }
+
+    public function setOrderStatus($order, $status, $refunded = array()) {
+        $config = Mage::getSingleton('pap/config');
+        if (!$config->isAutoStatusChangeEnabled()) {
+            Mage::helper('pap')->log('Postaffiliatepro: Automatic status change is not enabled.');
+            return false;
+        }
+
+        Mage::helper('pap')->log('Postaffiliatepro: Changing status of order '.$order->getIncrementId()." to '$status'");
         $session = $this->getSession();
 
         if (empty($session)) {
-            Mage::log('Postaffiliatepro: The module is still not configured!');
+            Mage::helper('pap')->log('Postaffiliatepro: The module is still not configured!');
             return;
         }
 
@@ -66,18 +122,18 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
                         }
                         continue;
                     }
-                    elseif ($status == 'D') {
+                    /*elseif ($status == 'D') {
                         if (in_array($record->get('productid'), $refunded)) {
                             $refundIDs[] = $record->get('id');
                         }
                         continue;
-                    }
+                    }*/
                 }
                 $ids[] = $record->get('id');
             }
         }
         catch (Exception $e) {
-            Mage::log('An API error while searching for the order with postfix: '.$e->getMessage());
+            Mage::helper('pap')->log('Postaffiliatepro: An API error while searching for the order with postfix: '.$e->getMessage());
             return false;
         }
 
@@ -107,7 +163,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
         }
 
         try {
-            Mage::log('We will be changing status of IDs: '.print_r($ids,true));
+            Mage::helper('pap')->log('Postaffiliatepro: We will be changing status of IDs: '.print_r($ids,true));
             $request = new Gpf_Rpc_FormRequest('Pap_Merchants_Transaction_TransactionsForm', 'changeStatus', $session);
             if (!empty($refundIDs)) {
                 $request->addParam('ids',new Gpf_Rpc_Array($refundIDs));
@@ -125,7 +181,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
             return true;
         }
         catch (Exception $e) {
-            Mage::log('API error while status changing: '.$e->getMessage());
+            Mage::helper('pap')->log('Postaffiliatepro: API error while status changing: '.$e->getMessage());
             return false;
         }
     }
@@ -204,7 +260,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
     public function createAffiliate($order, $onlyOrderID = false) {
         $config = Mage::getSingleton('pap/config');
         if (!$config->isCreateAffiliateEnabled()) {
-            Mage::log('Postaffiliatepro: Affiliate creation is not enabled.');
+            Mage::helper('pap')->log('Postaffiliatepro: Affiliate creation is not enabled.');
             return false;
         }
 
@@ -251,12 +307,12 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
 
         try {
             if ($affiliate->add()) {
-                Mage::log('Postaffiliatepro: Affiliate saved successfuly');
+                Mage::helper('pap')->log('Postaffiliatepro: Affiliate saved successfuly');
             } else {
-                Mage::log('Postaffiliatepro: Cannot save affiliate: '.$affiliate->getMessage());
+                Mage::helper('pap')->log('Postaffiliatepro: Cannot save affiliate: '.$affiliate->getMessage());
             }
         } catch (Exception $e) {
-            Mage::log('Postaffiliatepro: Error while communicating with PAP: '.$e->getMessage());
+            Mage::helper('pap')->log('Postaffiliatepro: Error while communicating with PAP: '.$e->getMessage());
         }
     }
 
@@ -277,10 +333,10 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
             $orderid = $order->getId();
         }
         else {
-            Mage::log('Postaffiliatepro: Order empty');
+            Mage::helper('pap')->log('Postaffiliatepro: Order empty');
             return false;
         }
-        Mage::log("Postaffiliatepro: Loading details of order $orderid");
+        Mage::helper('pap')->log("Postaffiliatepro: Loading details of order $orderid");
 
         $items = $this->getOrderSaleDetails($order);
         $this->registerSaleDetails($items, $visitorID);
@@ -297,7 +353,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
       }
 
       foreach ($items as $i => $item) {
-          Mage::log('Postaffiliatepro: Registering sale '.$item['orderid']."($i)");
+          Mage::helper('pap')->log('Postaffiliatepro: Registering sale '.$item['orderid']."($i)");
 
           $sale = $saleTracker->createSale();
           $sale->setTotalCost($item['totalcost']);

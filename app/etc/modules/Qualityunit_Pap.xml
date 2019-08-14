@@ -4,7 +4,7 @@
 		<Qualityunit_Pap>
 			<active>true</active>
 			<codePool>local</codePool>
-			<version>1.2.0</version>
+			<version>1.2.2</version>
 		</Qualityunit_Pap>
 	</modules>
 </config>

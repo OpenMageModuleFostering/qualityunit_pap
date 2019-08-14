@@ -3,12 +3,12 @@ class Qualityunit_Pap_Block_Clicktracking extends Mage_Core_Block_Text {
     protected function _toHtml() {
         $config = Mage::getSingleton('pap/config');
         if (!$config->isConfigured()) {
-            Mage::log('Postaffiliatepro: The module is still not configured!');
+            Mage::helper('pap')->log('Postaffiliatepro: The module is still not configured!');
             return '';
         }
 
         if (!$config->isClickTrackingEnabled()) {
-            Mage::log('Postaffiliatepro: Click tracking is turned off.');
+            Mage::helper('pap')->log('Postaffiliatepro: Click tracking is turned off.');
             return '';
         }
 

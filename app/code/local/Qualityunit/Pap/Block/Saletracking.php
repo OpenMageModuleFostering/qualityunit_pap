@@ -3,12 +3,12 @@ class Qualityunit_Pap_Block_SaleTracking extends Mage_Core_Block_Text {
     protected function _toHtml() {
         $config = Mage::getSingleton('pap/config');
         if (!$config->isConfigured()) {
-            Mage::log('Postaffiliatepro: The module is still not configured!');
+            Mage::helper('pap')->log('Postaffiliatepro: The module is still not configured!');
             return '';
         }
 
         if ($config->getTrackingMethod() != 'javascript') {
-            Mage::log('Postaffiliatepro: JavaScript tracking not allowed.');
+            Mage::helper('pap')->log('Postaffiliatepro: JavaScript tracking not allowed.');
             return '';
         }
 
@@ -27,7 +27,7 @@ class Qualityunit_Pap_Block_SaleTracking extends Mage_Core_Block_Text {
         }
 
         if (empty($quoteId)) {
-            Mage::log('Postaffiliatepro: Could not find quote ID for order details.');
+            Mage::helper('pap')->log('Postaffiliatepro: Could not find quote ID for order details.');
             return '';
         }
 

@@ -5,27 +5,27 @@ class Qualityunit_Pap_Model_PaypalIpn extends Mage_Paypal_Model_Ipn {
 
     protected function _registerPaymentCapture($skipFraudDetection = false) {
         try {
-            Mage::log('Postaffiliatepro: Loading PAP cookie from request');
+            Mage::helper('pap')->log('Postaffiliatepro: Loading PAP cookie from request');
 
             $pap = Mage::getModel('pap/pap');
             $visitorID = '';
             if (isset($this->_request['pap_custom']) && ($this->_request['pap_custom'] != '')) {
                 $visitorID = $this->_request['pap_custom'];
             }
-            
+
             $order = Mage::getModel('sales/order')->load($this->_request['custom']);
 
-            Mage::log("Postaffiliatepro: Starting registering sale for cookie '$visitorID'\n");
+            Mage::helper('pap')->log("Postaffiliatepro: Starting registering sale for cookie '$visitorID'");
             if ($order == '') {
                 $pap->registerOrder($this->_getOrder(), $visitorID);
             }
             else {
                 $pap->registerOrder($order, $visitorID);
             }
-            Mage::log('Postaffiliatepro: Sale registered successfully');
+            Mage::helper('pap')->log('Postaffiliatepro: Sale registered successfully');
         }
         catch (Exception $e) {
-            Mage::log('Postaffiliatepro: An error occurred while registering PayPal sale: '.$e->getMessage());
+            Mage::helper('pap')->log('Postaffiliatepro: An error occurred while registering PayPal sale: '.$e->getMessage());
         }
 
         parent::_registerPaymentCapture($skipFraudDetection);

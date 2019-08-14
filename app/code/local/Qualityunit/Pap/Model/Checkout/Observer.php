@@ -11,7 +11,7 @@ class Qualityunit_Pap_Model_Checkout_Observer {
 
       $lastOrderId = $this->getOnepage()->getCheckout()->getLastOrderId();
       if (!$lastOrderId) {
-          Mage::log('Postaffiliatepro: No order has been found.');
+          Mage::helper('pap')->log('Postaffiliatepro: No order has been found.');
           return false;
       }
 
