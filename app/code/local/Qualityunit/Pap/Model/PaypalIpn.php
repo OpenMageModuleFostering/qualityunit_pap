@@ -16,8 +16,12 @@ class Qualityunit_Pap_Model_PaypalIpn extends Mage_Paypal_Model_Ipn {
             $order = Mage::getModel('sales/order')->load($this->_request['custom']);
 
             Mage::log("Postaffiliatepro: Starting registering sale for cookie '$visitorID'\n");
-            //$pap->registerOrder($this->_getOrder(), $visitorID);
-            $pap->registerOrder($order, $visitorID);
+            if ($order == '') {
+                $pap->registerOrder($this->_getOrder(), $visitorID);
+            }
+            else {
+                $pap->registerOrder($order, $visitorID);
+            }
             Mage::log('Postaffiliatepro: Sale registered successfully');
         }
         catch (Exception $e) {

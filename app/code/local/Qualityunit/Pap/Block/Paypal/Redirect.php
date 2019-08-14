@@ -11,14 +11,15 @@ class Qualityunit_Pap_Block_Paypal_Redirect extends Mage_Core_Block_Abstract {
             ->setUseContainer(true);
         foreach ($standard->getStandardCheckoutFormFields() as $field=>$value) {
             if ($field == 'notify_url') {
-                $form->addField($field, 'hidden', array('name'=>$field, 'id'=>'pap_ab78y5t4a', 'value'=>$value));
+                $form->addField($field, 'hidden', array('name'=>$field, 'id'=>'pap_ab78y5t4a', 'value'=>$value)); // html_id
             }
             else {
                 $form->addField($field, 'hidden', array('name'=>$field, 'value'=>$value));
             }
         }
         // custom field with order ID
-        $form->addField('custom', 'hidden', array('name'=>'custom', 'value'=>$this->getCheckout()->getLastRealOrderId()));
+        $orderIncrementId = $standard->getCheckout()->getLastRealOrderId();
+        $form->addField('custom', 'hidden', array('name'=>'custom', 'value'=>$orderIncrementId));
 
         $idSuffix = Mage::helper('core')->uniqHash();
         $submitButton = new Varien_Data_Form_Element_Submit(array(
@@ -45,6 +46,7 @@ class Qualityunit_Pap_Block_Paypal_Redirect extends Mage_Core_Block_Abstract {
         <script type="text/javascript">'.
         "PostAffTracker.setAccountId('".$accountID."');
         PostAffTracker.writeCookieToCustomField('pap_ab78y5t4a', '', 'pap_custom');
+        PostAffTracker.writeCookieToCustomField('notify_url', '', 'pap_custom');
         </script>
         <!-- /Post Affiliate Pro integration snippet -->";
         $html.= '</body></html>';

@@ -7,8 +7,7 @@ class Qualityunit_Pap_Model_Paypal extends Mage_Paypal_Model_Standard {
         try {
             $pap = Mage::getModel('pap/pap');
             $postData = $this->getIpnFormData();
-            $orderID = $_POST['custom'];
-            $visitorID = $_GET['pap_custom'];;
+            $visitorID = $_GET['pap_custom'];
 
             $sReq = '';
             foreach($this->getIpnFormData() as $k=>$v) {
@@ -25,7 +24,8 @@ class Qualityunit_Pap_Model_Paypal extends Mage_Paypal_Model_Standard {
             $response = trim($response[1]);
 
             if ($response=='VERIFIED') {
-              $pap->registerOrder($saleData, isset($visitorID) ? $visitorID : null);
+                $order = Mage::getModel('sales/order')->loadByIncrementId($_POST['custom']);
+                $pap->registerOrder($order, isset($visitorID) ? $visitorID : null);
             }
         }
         catch (Exception $e) {
