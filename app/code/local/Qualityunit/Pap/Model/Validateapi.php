@@ -22,9 +22,16 @@ class Qualityunit_Pap_Model_Validateapi extends Mage_Core_Model_Config_Data {
         $password = $_POST['groups']['api']['fields']['password']['value'];
 
         $session = new Gpf_Api_Session($url);
+        // check HTTP
         if (!@$session->login($username, $password)) {
-            Mage::getSingleton('adminhtml/session')->addError('Credential are probably not correct: '.$session->getMessage());
-            return null;
+            // check HTTPS
+            $session = new Gpf_Api_Session(str_replace('http://','https://',$url));
+            if (!@$session->login($username, $password)) {
+                Mage::getSingleton('adminhtml/session')->addError('Credentials are probably not correct: '.$session->getMessage());
+                return null;
+            } else {
+                Mage::getSingleton('core/session')->addSuccess('API Connection tested successfully!');
+            }
         } else {
             Mage::getSingleton('core/session')->addSuccess('API Connection tested successfully!');
         }

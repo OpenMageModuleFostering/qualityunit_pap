@@ -48,11 +48,15 @@ class Qualityunit_Pap_Model_Config extends Mage_Core_Model_Config_Base {
         }
 
         // sanitize the URL
-        $server = str_replace('https', 'http', $server);
+        $server = str_replace('https://', 'http://', $server);
         $server = str_replace('http://', '', $server);
         if (substr($server,-1) == '/') $server = substr($server,0,-1);
 
         return $server;
+    }
+
+    public function getAPIPath() {
+        return 'http://'.$this->getInstallationPath().'/scripts/server.php';
     }
 
     public function getTrackingMethod() {

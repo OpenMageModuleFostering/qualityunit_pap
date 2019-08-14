@@ -7,19 +7,22 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
 
     public function getSession() {
       if (($this->papSession != '') && ($this->papSession != null)) {
-        return $this->papSession;
+          return $this->papSession;
       }
 
       Mage::getSingleton('pap/config')->includePapAPI();
       $config = Mage::getSingleton('pap/config');
-      $url = $config->getInstallationPath().'/scripts/server.php';
+      $url = $config->getAPIPath();
       $username = $config->getAPICredential('username');
       $password = $config->getAPICredential('pass');
 
       $session = new Gpf_Api_Session($url);
       if (!$session->login($username, $password)) {
-          Mage::log('Postaffiliatepro: Could not initiate API session: '.$session->getMessage());
-          return null;
+          $session = new Gpf_Api_Session(str_replace('http://','https://',$url));
+          if (!$session->login($username, $password)) {
+              Mage::log('Postaffiliatepro: Could not initiate API session: '.$session->getMessage());
+              return null;
+          }
       }
 
       $this->papSession = $session;
