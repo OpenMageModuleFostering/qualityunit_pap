@@ -9,8 +9,8 @@
  *   Version 1.0 (the "License"); you may not use this file except in compliance
  *   with the License. You may obtain a copy of the License at
  *   http://www.qualityunit.com/licenses/gpf
- *   Generated on: 2015-10-29 10:16:38
- *   PAP version: 5.4.20.6, GPF version: 1.3.28.0
+ *   Generated on: 2015-12-16 07:55:32
+ *   PAP version: 5.4.27.1, GPF version: 1.3.32.0
  *   
  */
 
@@ -951,6 +951,13 @@ if (!class_exists('Gpf_Data_RecordHeader', false)) {
               return;
           }
           
+          if (!$this->isIterable($headerArray)) {
+              $e = new Gpf_Exception('');
+              Gpf_Log::error('Not correct header for RecordHeader, trace: '.$e->getTraceAsString());
+              
+              return;
+          }
+          
           foreach ($headerArray as $id) {
               $this->add($id);
           }
@@ -997,6 +1004,10 @@ if (!class_exists('Gpf_Data_RecordHeader', false)) {
               $result[] = $columnId;
           }
           return $result;
+      }
+      
+      private function isIterable($var) {
+          return (is_array($var) || $var instanceof Traversable || $var instanceof stdClass);
       }
   }
   
@@ -1329,6 +1340,10 @@ if (!class_exists('Gpf_Data_RecordSet', false)) {
   
       public function addRecord(Gpf_Data_Record $record) {
           $this->_array[] = $record;
+      }
+  
+      public function removeRecord($i) {
+          unset($this->_array[$i]);
       }
   
       /**
@@ -2091,7 +2106,13 @@ if (!class_exists('Gpf_Net_Http_Response', false)) {
   
       public function getResponseCode() {
           $headers = $this->getHeaders();
+          if ($headers == false || !isset($headers['status'])) {
+              return false;
+          }
           preg_match('/.*?\s([0-9]*?)\s.*/', $headers['status'], $match);
+          if (!isset($match[1])) {
+              return false;
+          }
           return $match[1];
       }
   
@@ -2950,17 +2971,21 @@ if (!class_exists('Gpf_Rpc_Action', false)) {
       public function getErrorMessage() {
           return $this->errorMessage;
       }
-      
+  
+      public function getInfoMessage() {
+          return $this->infoMessage;
+      }
+  
       public function setInfoMessage($message) {
           $this->infoMessage = $message;
       }
   
-      public function addOk() {
-          $this->successCount++;
+      public function addOk($count = 1) {
+          $this->successCount += $count;
       }
   
-      public function addError() {
-          $this->errorCount++;
+      public function addError($count = 1) {
+          $this->errorCount += $count;
       }
       
   }
@@ -5271,25 +5296,26 @@ if (!class_exists('Pap_Api_Transaction', false)) {
 
 if (!class_exists('Pap_Tracking_Action_RequestActionObject', false)) {
   class Pap_Tracking_Action_RequestActionObject extends Gpf_Rpc_JsonObject {
-      public $ac = ''; // actionCode
-      public $t  = ''; // totalCost
-      public $f  = ''; // fixedCost
-      public $o  = ''; // order ID
-      public $p  = ''; // product ID
-      public $d1 = ''; // data1
-      public $d2 = ''; // data2
-      public $d3 = ''; // data3
-      public $d4 = ''; // data4
-      public $d5 = ''; // data5
-      public $a  = ''; // affiliate ID
-      public $c  = ''; // campaign ID
-      public $b  = ''; // banner ID
-      public $ch = ''; // channel ID
-      public $cc = ''; // custom commission
-      public $s  = ''; // status
-      public $cr = ''; // currency
-      public $cp = ''; // coupon code
-      public $ts = ''; // time stamp
+      public $ac   = ''; // actionCode
+      public $t    = ''; // totalCost
+      public $f    = ''; // fixedCost
+      public $o    = ''; // order ID
+      public $p    = ''; // product ID
+      public $d1   = ''; // data1
+      public $d2   = ''; // data2
+      public $d3   = ''; // data3
+      public $d4   = ''; // data4
+      public $d5   = ''; // data5
+      public $a    = ''; // affiliate ID
+      public $c    = ''; // campaign ID
+      public $b    = ''; // banner ID
+      public $ch   = ''; // channel ID
+      public $cc   = ''; // custom commission
+      public $ccfc = ''; // load next tiers from campaign
+      public $s    = ''; // status
+      public $cr   = ''; // currency
+      public $cp   = ''; // coupon code
+      public $ts   = ''; // time stamp
       
       public function __construct($object = null) {
           parent::__construct($object);
@@ -5363,6 +5389,10 @@ if (!class_exists('Pap_Tracking_Action_RequestActionObject', false)) {
   
       public function getCustomCommission() {
           return $this->cc;
+      }
+  
+      public function getCustomCommissionNextTiersFromCampaign() {
+          return $this->ccfc;
       }
   
       public function getStatus() {
@@ -5439,6 +5469,10 @@ if (!class_exists('Pap_Tracking_Action_RequestActionObject', false)) {
   
       public function setCustomCommission($value) {
           $this->cc = $value;
+      }
+  
+      public function setCustomCommissionNextTiersFromCampaign($value) {
+          $this->ccfc = $value;
       }
   
       public function setStatus($value) {
@@ -6455,6 +6489,6 @@ if (!class_exists('Gpf_Net_Http_Client', false)) {
 }
 /*
 VERSION
-dd3e251e05f78b1e2ce51e07991dc8f9
+8b602caa3f7e5f3b21972a0566b24f95
 */
 ?>

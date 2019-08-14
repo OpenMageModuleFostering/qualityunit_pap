@@ -217,7 +217,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
       $config->includePapAPI();
 
       $saleTracker = new Pap_Api_SaleTracker($config->getInstallationPath().'/scripts/sale.php');
-      $saleTracker->setAccountId($config->getAccountID());
+      $saleTracker->setAccountId($config->getAPICredential('account'));
       if (!empty($visitorID)) {
           $saleTracker->setVisitorId($visitorID);
       }
