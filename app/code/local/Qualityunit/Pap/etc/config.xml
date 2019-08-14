@@ -23,7 +23,7 @@
             </pap>
             <paypal>
                 <rewrite>
-                    <standard_redirect>Mage_Pap_Block_Paypal_Redirect</standard_redirect>
+                    <standard_redirect>Qualityunit_Pap_Block_Paypal_Redirect</standard_redirect>
                 </rewrite>
             </paypal>
         </blocks>

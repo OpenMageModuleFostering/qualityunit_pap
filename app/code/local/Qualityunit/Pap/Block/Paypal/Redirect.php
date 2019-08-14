@@ -34,7 +34,7 @@ class Qualityunit_Pap_Block_Paypal_Redirect extends Mage_Core_Block_Abstract {
 
         $config = Mage::getSingleton('pap/config');
         $url = $config->getInstallationPath();
-        $accountID = $config->getAccountID();
+        $accountID = $config->getAPICredential('account');
 
         $html.= '
         <!-- Post Affiliate Pro integration snippet -->
