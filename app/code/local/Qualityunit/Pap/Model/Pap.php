@@ -252,7 +252,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
           case 'customerName':
               $name = '';
               if (!empty($order)) {
-                  $name = $order->getCustomerFirstname()+' '+$order->getCustomerMiddlename()+' '+$order->getCustomerLastname();
+                  $name = $order->getCustomerFirstname().' '.$order->getCustomerMiddlename().' '.$order->getCustomerLastname();
               }
               return (!empty($name)) ? $name : null;
               break;
