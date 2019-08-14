@@ -67,17 +67,51 @@ class Qualityunit_Pap_Model_Config extends Mage_Core_Model_Config_Base {
         return Mage::getStoreConfig('pap_config/tracking/data'.$n);
     }
 
-    public function getPerProduct() {
+    public function isPerProductEnabled() {
         if (Mage::getStoreConfigFlag('pap_config/tracking/perproduct')) {
             return true;
         }
         return false;
     }
 
-    public function getCouponTrack() {
+    public function isClickTrackingEnabled() {
+        if (Mage::getStoreConfigFlag('pap_config/tracking/trackclicks')) {
+            return true;
+        }
+        return false;
+    }
+
+    public function isCouponTrackingEnabled() {
         if (Mage::getStoreConfigFlag('pap_config/tracking/coupontrack')) {
             return true;
         }
         return false;
+    }
+
+    public function isAutoStatusChangeEnabled() {
+        if (Mage::getStoreConfigFlag('pap_config/tracking/autostatuschange')) {
+            return true;
+        }
+        return false;
+    }
+
+
+    public function isCreateAffiliateEnabled() {
+        if (Mage::getStoreConfigFlag('pap_config/affiliate/createaff')) {
+            return true;
+        }
+        return false;
+    }
+
+    public function getCreateAffiliateProducts() {
+        $products = Mage::getStoreConfig('pap_config/affiliate/createaffproducts');
+        if ($products == '' || $products == null) {
+            return array();
+        }
+        if (strpos($products, ',') != false) {
+            $products = str_replace(', ', ',', $products);
+            $products = str_replace(' ,', ',', $products);
+        }
+        return explode(',',$products);
     }
 }

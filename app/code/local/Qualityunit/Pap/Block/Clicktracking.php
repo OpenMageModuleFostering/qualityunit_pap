@@ -7,6 +7,11 @@ class Qualityunit_Pap_Block_Clicktracking extends Mage_Core_Block_Text {
             return '';
         }
 
+        if (!$config->isClickTrackingEnabled()) {
+            Mage::log('Postaffiliatepro: Click tracking is turned off.');
+            return '';
+        }
+
         $url = $config->getInstallationPath();
         $accountID = $config->getAPICredential('account');
 
@@ -29,7 +34,7 @@ class Qualityunit_Pap_Block_Clicktracking extends Mage_Core_Block_Text {
                 <!-- /Post Affiliate Pro integration snippet -->
             ');
         }
-        
+
         return parent::_toHtml();
     }
 }

@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Qualityunit_Pap>
-            <version>1.0.9</version>
+            <version>1.1.0</version>
         </Qualityunit_Pap>
     </modules>
     <global>
@@ -138,15 +138,21 @@
                 <accountid>default1</accountid>
             </api>
             <tracking>
-              <trackingmethod>javascript</trackingmethod>
-              <perproduct>1</perproduct>
-              <coupontrack>0</coupontrack>
-              <data1>empty</data1>
-              <data2>empty</data2>
-              <data3>empty</data3>
-              <data4>empty</data4>
-              <data5>empty</data5>
+                <trackingmethod>javascript</trackingmethod>
+                <trackclicks>1</trackclicks>
+                <perproduct>1</perproduct>
+                <coupontrack>0</coupontrack>
+                <autostatuschange>1</autostatuschange>
+                <data1>empty</data1>
+                <data2>empty</data2>
+                <data3>empty</data3>
+                <data4>empty</data4>
+                <data5>empty</data5>
             </tracking>
+            <affiliate>
+            	<createaff>0</createaff>
+            	<createaffproducts>0</createaffproducts>
+            </affiliate>
         </pap>
     </default>
 </config>

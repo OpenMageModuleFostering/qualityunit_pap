@@ -68,7 +68,7 @@
                 <tracking translate="label">
                     <label>Tracking</label>
                     <frontend_type>text</frontend_type>
-                    <sort_order>30</sort_order>
+                    <sort_order>20</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
@@ -82,11 +82,21 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </trackingmethod>
+                        <trackclicks translate="label">
+                            <label>Track clicks</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <tooltip><![CDATA[Choose whether the click tracking code should be automatically added to your site or not.]]></tooltip>
+                        </trackclicks>
                         <perproduct translate="label">
                             <label>Per Product Commissions</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>30</sort_order>
+                            <sort_order>25</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
@@ -102,6 +112,16 @@
                             <show_in_store>1</show_in_store>
                             <tooltip><![CDATA[Enabled with "Yes", the system will set a coupon code to the sale tracker.]]></tooltip>
                         </coupontrack>
+                        <autostatuschange translate="label">
+                            <label>Update commission status</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>35</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <tooltip><![CDATA[Orders change status e.g. when paid or cancelled, or refunded. Do you want the commission to change status accordingly?]]></tooltip>
+                        </autostatuschange>
                         <data1 translate="label">
                             <label>Custom Data 1</label>
                             <frontend_type>select</frontend_type>
@@ -154,6 +174,36 @@
                         </data5>
                     </fields>
                 </tracking>
+                <affiliate translate="label">
+                    <label>Affiliate creation</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>30</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                    	<createaff translate="label">
+                            <label>Create affiliate</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <tooltip><![CDATA[An affiliate account would be created automatically for every customer making and order in your store.]]></tooltip>
+                        </createaff>
+                        <createaffproducts translate="label">
+                            <label>Create on specific product</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><createaff>1</createaff></depends>
+                            <tooltip><![CDATA[An affiliate account will only be created if a customer ordered a specific product (defined by product ID). No product defined means affiliate will be created for any product. Use comma separator for more products.]]></tooltip>
+                        </createaffproducts>
+                    </fields>
+                </affiliate>
             </groups>
         </pap_config>
     </sections>

@@ -30,6 +30,12 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
     }
 
     public function setOrderStatus($order, $status, $refunded = array()) {
+        $config = Mage::getSingleton('pap/config');
+        if (!$config->isAutoStatusChangeEnabled()) {
+            Mage::log('Postaffiliatepro: Automatic status change is not enabled.');
+            return false;
+        }
+
         Mage::log('Postaffiliatepro: Changing status of order '.$order->getIncrementId()." to '$status'");
         $session = $this->getSession();
 
@@ -150,7 +156,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
         $sales = array();
         $status = $this->getStatus($order->getState());
 
-        if ($config->getPerProduct()) { // per product tracking
+        if ($config->isPerProductEnabled()) { // per product tracking
             $items = $order->getAllVisibleItems();
 
             foreach($items as $i=>$item) {
@@ -194,6 +200,65 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
         }
 
         return $sales;
+    }
+
+    public function createAffiliate($order, $onlyOrderID = false) {
+        $config = Mage::getSingleton('pap/config');
+        if (!$config->isCreateAffiliateEnabled()) {
+            Mage::log('Postaffiliatepro: Affiliate creation is not enabled.');
+            return false;
+        }
+
+        if ($onlyOrderID) {
+            $order = Mage::getModel('sales/order')->load($order);
+        }
+
+        $products = $config->getCreateAffiliateProducts();
+        if (sizeof($products) > 0) {
+            // conditional only
+            $items = $order->getAllVisibleItems();
+            $search = false;
+            foreach($items as $i=>$item) {
+                if (in_array($item->getProductId(), $products)) {
+                    $search = true;
+                    break; // end of search, we have it
+                }
+            }
+            if (!$search) {
+                return false;
+            }
+        }
+
+        // create affiliate
+        $customer = Mage::getSingleton('customer/session')->getCustomer();
+
+        $session = $this->getSession();
+        $affiliate = new Pap_Api_Affiliate($session);
+        $affiliate->setUsername($order->getCustomerEmail());
+        $affiliate->setFirstname($order->getCustomerFirstname());
+        $affiliate->setLastname($order->getCustomerLastname());
+        $affiliate->setVisitorId(@$_COOKIE['PAPVisitorId']);
+
+        $address = $customer->getPrimaryAddress('default_billing');
+        if (!empty($address)) {
+            $addressArray = $address->getData();
+            $affiliate->setData(3,$addressArray['street']);
+            $affiliate->setData(4,$addressArray['city']);
+            $affiliate->setData(5,$addressArray['region']);
+            $affiliate->setData(6,$addressArray['country_id']);
+            $affiliate->setData(7,$addressArray['postcode']);
+            $affiliate->setData(8,$addressArray['telephone']);
+        }
+
+        try {
+            if ($affiliate->add()) {
+                Mage::log('Postaffiliatepro: Affiliate saved successfuly');
+            } else {
+                Mage::log('Postaffiliatepro: Cannot save affiliate: '.$affiliate->getMessage());
+            }
+        } catch (Exception $e) {
+            Mage::log('Postaffiliatepro: Error while communicating with PAP: '.$e->getMessage());
+        }
     }
 
     public function registerOrderByID($orderid, $realid = true) { // called from the checkout observer

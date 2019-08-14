@@ -15,6 +15,7 @@ class Qualityunit_Pap_Model_Checkout_Observer {
           return false;
       }
 
+      Mage::getModel('pap/pap')->createAffiliate($lastOrderId, true);
       Mage::getModel('pap/pap')->registerOrderByID($lastOrderId);
   }
 
