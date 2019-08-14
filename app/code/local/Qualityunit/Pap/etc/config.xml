@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Qualityunit_Pap>
-            <version>1.0.0</version>
+            <version>1.0.3</version>
         </Qualityunit_Pap>
     </modules>
     <global>
@@ -141,6 +141,11 @@
               <trackingmethod>javascript</trackingmethod>
               <perproduct>1</perproduct>
               <coupontrack>0</coupontrack>
+              <data1>empty</data1>
+              <data2>empty</data2>
+              <data3>empty</data3>
+              <data4>empty</data4>
+              <data5>empty</data5>
             </tracking>
         </pap>
     </default>

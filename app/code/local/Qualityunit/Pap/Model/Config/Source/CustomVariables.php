@@ -2,6 +2,7 @@
 class Qualityunit_Pap_Model_Config_Source_CustomVariables {
     public function toOptionArray() {
         return array(
+            array('label'=>' ', 'value'=>'empty'),
             array('label'=>'Item name', 'value'=>'itemName'),
             array('label'=>'Item quantity', 'value'=>'itemQuantity'),
             array('label'=>'Item price (multiplied by quantity, before discount)', 'value'=>'itemPrice'),
@@ -19,6 +20,7 @@ class Qualityunit_Pap_Model_Config_Source_CustomVariables {
             array('label'=>'Internal order ID', 'value'=>'internalOrderID'),
             array('label'=>'Customer ID', 'value'=>'customerID'),
             array('label'=>'Customer email', 'value'=>'customerEmail'),
+            array('label'=>'Customer name', 'value'=>'customerName'),
             array('label'=>'Coupon code', 'value'=>'couponCode')
         );
     }

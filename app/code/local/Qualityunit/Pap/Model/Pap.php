@@ -243,6 +243,9 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
 
     public function changeExtraData($data, $order, $item, $product) {
         switch ($data) {
+          case 'empty':
+              return null;
+              break;
           case 'itemName':
               return (!empty($item)) ? $item->getName() : null;
               break;
