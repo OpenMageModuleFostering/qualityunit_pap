@@ -3,13 +3,13 @@ require_once BP.DS.'app/code/core/Mage/Paypal/Model/Ipn.php';
 
 class Qualityunit_Pap_Model_PaypalIpn extends Mage_Paypal_Model_Ipn {
 
-    protected function _registerPaymentCapture() {
+    protected function _registerPaymentCapture($skipFraudDetection = false) {
         try {
             Mage::log('Postaffiliatepro: Loading PAP cookie from request');
 
             $pap = Mage::getModel('pap/pap');
             $visitorID = '';
-            if ($this->_request['pap_custom'] != '') {
+            if (isset($this->_request['pap_custom']) && ($this->_request['pap_custom'] != '')) {
                 $visitorID = $this->_request['pap_custom'];
             }
             
@@ -28,6 +28,6 @@ class Qualityunit_Pap_Model_PaypalIpn extends Mage_Paypal_Model_Ipn {
             Mage::log('Postaffiliatepro: An error occurred while registering PayPal sale: '.$e->getMessage());
         }
 
-        parent::_registerPaymentCapture();
+        parent::_registerPaymentCapture($skipFraudDetection);
     }
 }
