@@ -15,6 +15,11 @@ class Qualityunit_Pap_Block_Clicktracking extends Mage_Core_Block_Text {
         $url = $config->getInstallationPath();
         $accountID = $config->getAPICredential('account');
 
+        $campaign = '';
+        if ($config->getCampaignID() != '') {
+            $campaign = "\nvar CampaignID = '".$config->getCampaignID()."';";
+        }
+
         if ($url == '') {
             $this->addText('<!-- Post Affiliate Pro plugin has not been configured yet! -->');
         }
@@ -26,7 +31,7 @@ class Qualityunit_Pap_Block_Clicktracking extends Mage_Core_Block_Text {
                   "'.$url.'/scripts/trackjs.js\' type=\'text/javascript\'%3E%3C/script%3E"));
                 </script>
                 <script type="text/javascript">
-                PostAffTracker.setAccountId(\''.$accountID.'\');
+                PostAffTracker.setAccountId(\''.$accountID.'\');'.$campaign.'
                 try {
                   PostAffTracker.track();
                 } catch (err) { }

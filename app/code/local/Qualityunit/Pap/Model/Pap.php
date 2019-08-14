@@ -131,10 +131,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
     }
 
     private function safeString($str) {
-    	if (strpos($str, '&') !== false) {
-    		return urlencode($str);
-    	}
-    	return $str;
+    	return urlencode($str);
     }
 
     private function getStatus($state) {
@@ -172,6 +169,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
                 $sales[$i]['productid'] = $this->safeString($product->getSku());
                 $sales[$i]['couponcode'] = $couponcode;
                 $sales[$i]['status'] = $status;
+                $sales[$i]['campaignid'] = $config->getCampaignID();
 
                 for ($n = 1; $n < 6; $n++) {
                     if ($config->getData($n)) {
@@ -191,6 +189,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
             $sales[0]['productid'] = null;
             $sales[0]['couponcode'] = $couponcode;
             $sales[0]['status'] = $status;
+            $sales[0]['campaignid'] = $config->getCampaignID();
 
             for ($n = 1; $n < 6; $n++) {
                 if ($config->getData($n)) {
@@ -233,7 +232,7 @@ class Qualityunit_Pap_Model_Pap extends Mage_Core_Model_Abstract {
         $customer = Mage::getSingleton('customer/session')->getCustomer();
 
         $session = $this->getSession();
-        $affiliate = new Pap_Api_Affiliate($session);
+        $affiliate = new Pap_Api_AffiliateSignup($session);
         $affiliate->setUsername($order->getCustomerEmail());
         $affiliate->setFirstname($order->getCustomerFirstname());
         $affiliate->setLastname($order->getCustomerLastname());

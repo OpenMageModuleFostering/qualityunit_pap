@@ -92,6 +92,15 @@
                             <show_in_store>1</show_in_store>
                             <tooltip><![CDATA[Choose whether the click tracking code should be automatically added to your site or not.]]></tooltip>
                         </trackclicks>
+                        <trackforcampaign>
+                            <label>Track into campaign</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>23</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <tooltip><![CDATA[You can set if all sales will always be assigned to a specific campaign (identified by campaign ID).]]></tooltip>
+                        </trackforcampaign>
                         <perproduct translate="label">
                             <label>Per Product Commissions</label>
                             <frontend_type>select</frontend_type>

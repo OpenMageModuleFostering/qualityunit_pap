@@ -67,6 +67,10 @@ class Qualityunit_Pap_Model_Config extends Mage_Core_Model_Config_Base {
         return Mage::getStoreConfig('pap_config/tracking/data'.$n);
     }
 
+    public function getCampaignID() {
+        return Mage::getStoreConfig('pap_config/tracking/trackforcampaign');
+    }
+
     public function isPerProductEnabled() {
         if (Mage::getStoreConfigFlag('pap_config/tracking/perproduct')) {
             return true;

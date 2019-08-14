@@ -58,6 +58,7 @@ class Qualityunit_Pap_Block_SaleTracking extends Mage_Core_Block_Text {
                     sale$i.setStatus('".$item['status']."');
                     sale$i.setCurrency('".(Mage::app()->getStore()->getBaseCurrencyCode())."');\n";
 
+                if (!empty($item['campaignid'])) $sale_tracker .= "sale$i.setCampaignID('".$item['campaignid']."');\n";
                 if (!empty($item['data1'])) $sale_tracker .= "sale$i.setData1('".$item['data1']."');\n";
                 if (!empty($item['data2'])) $sale_tracker .= "sale$i.setData2('".$item['data2']."');\n";
                 if (!empty($item['data3'])) $sale_tracker .= "sale$i.setData3('".$item['data3']."');\n";
