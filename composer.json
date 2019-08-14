@@ -1,0 +1,16 @@
+{
+    "name": "OpenMageModuleFostering/Qualityunit_Pap",
+    "type": "magento-module",
+    "license": "GNU-General-Public-License-(GPL)",
+    "homepage": "",
+    "description": "The module makes an integration with Post Affiliate Pro or Post Affiliate Network an easy thing. A simple configuration with all the needed options helps you to make it working in seconds.",
+    "authors": [
+    {
+        "name": "Quality Unit, LLC",
+        "email": "support@qualityunit.com"
+    }
+],
+    "suggest": {
+        "magento-hackathon/magento-composer-installer": "*"
+    }
+}
